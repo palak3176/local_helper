@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NEARY.OS // AURA_PORTAL_2100</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+
+        :root {
+
+            --vexa-orange: #ff5722;
+
+            --vexa-dark: #050505;
+
+            --vexa-panel: rgba(15, 15, 15, 0.75);
+
+            --glass-stroke: rgba(255, 87, 34, 0.12);
+
+            --text-main: #ffffff;
+
+            --text-muted: #71717a;
+
+            --font-modern: 'Inter', system-ui, -apple-system, sans-serif;
+
+        }
+
+
+
+        body {
+
+            background-color: var(--vexa-dark);
+
+            color: var(--text-main);
+
+            font-family: var(--font-modern);
+
+            overflow: hidden;
+
+            height: 100vh;
+
+            margin: 0;
+
+        }
+
+
+
+        /* ATMOSPHERIC ORANGE SHADES */
+
+        .mesh-container {
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: -1;
+
+            overflow: hidden;
+
+            background: #000;
+
+        }
+
+
+
+        .glow-sphere {
+
+            position: absolute;
+
+            border-radius: 50%;
+
+            filter: blur(120px);
+
+            opacity: 0.25;
+
+        }
+
+
+
+        .sphere-1 { width: 600px; height: 600px; background: var(--vexa-orange); top: -200px; right: -100px; }
+
+        .sphere-2 { width: 500px; height: 500px; background: #8c3218; bottom: -150px; left: -100px; }
+
+
+
+        .vignette {
+
+            position: fixed;
+
+            inset: 0;
+
+            background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.8) 100%);
+
+            pointer-events: none;
+
+            z-index: 5;
+
+        }
+
+
+
+        .nexus-panel {
+
+            background: var(--vexa-panel);
+
+            backdrop-filter: blur(50px) saturate(160%);
+
+            border: 1px solid rgba(255, 255, 255, 0.04);
+
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+
+            border-radius: 28px;
+
+        }
+
+
+
+        .sidebar {
+
+            width: 360px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 1.25rem;
+
+            z-index: 10;
+
+        }
+
+
+
+        .stack-panel {
+
+            padding: 1.25rem;
+
+            display: flex;
+
+            flex-direction: column;
+
+            min-height: 0;
+
+        }
+
+
+
+        .stack-title {
+
+            font-size: 10px;
+
+            font-weight: 900;
+
+            text-transform: uppercase;
+
+            letter-spacing: 4px;
+
+            opacity: 0.4;
+
+            margin: 0 0 1rem 0.5rem;
+
+        }
+
+
+
+        .service-card {
+
+            padding: 1.25rem;
+
+            border-radius: 20px;
+
+            cursor: pointer;
+
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+            border: 1px solid rgba(255, 255, 255, 0.03);
+
+            background: rgba(255, 255, 255, 0.015);
+
+        }
+
+
+
+        .service-card:hover {
+
+            background: rgba(255, 255, 255, 0.04);
+
+            border-color: rgba(255, 87, 34, 0.2);
+
+            transform: translateY(-2px);
+
+        }
+
+
+
+        .service-card.active {
+
+            background: rgba(255, 87, 34, 0.04);
+
+            border: 1px solid var(--vexa-orange);
+
+            box-shadow: 0 0 40px rgba(255, 87, 34, 0.08);
+
+        }
+
+
+
+        /* MISSION CARDS */
+
+        .mission-transmission-card {
+
+            background: rgba(10, 10, 10, 0.9);
+
+            border: 1px solid var(--vexa-orange);
+
+            border-radius: 24px;
+
+            padding: 1.25rem;
+
+            margin-bottom: 0.85rem;
+
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+            border-left-width: 4px;
+
+        }
+
+
+
+        .otp-value { font-size: 1.8rem; font-weight: 800; letter-spacing: 8px; color: var(--vexa-orange); font-family: monospace; display: block; text-align: center; }
+
+        .timer-unit { font-size: 2.2rem; font-weight: 800; color: white; text-align: center; letter-spacing: -1px; font-family: monospace; }
+
+
+
+        .status-pill { padding: 4px 10px; background: var(--vexa-orange); border-radius: 6px; font-size: 0.6rem; font-weight: 900; text-transform: uppercase; color: black; }
+
+
+
+        .init-btn {
+
+            background: var(--vexa-orange);
+
+            color: #000;
+
+            font-weight: 800;
+
+            padding: 1rem;
+
+            border-radius: 14px;
+
+            text-transform: uppercase;
+
+            font-size: 0.8rem;
+
+            transition: 0.3s ease;
+
+            width: 100%;
+
+            border: none;
+
+        }
+
+
+
+        .nav-icon-btn {
+
+            width: 48px;
+
+            height: 48px;
+
+            border-radius: 14px;
+
+            background: rgba(255,255,255,0.03);
+
+            border: 1px solid rgba(255,255,255,0.05);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+
+            color: var(--text-muted);
+
+        }
+
+
+
+        .nav-icon-btn:hover { color: white; border-color: var(--vexa-orange); background: rgba(255, 87, 34, 0.1); }
+
+
+
+        .input-field {
+
+            background: #000;
+
+            border: 1px solid rgba(255,255,255,0.08);
+
+            color: white;
+
+            padding: 0.8rem 1rem;
+
+            border-radius: 12px;
+
+            width: 100%;
+
+            outline: none;
+
+            font-size: 0.9rem;
+
+            transition: 0.3s;
+
+        }
+
+
+
+        .field-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 6px; display: block; margin-left: 4px; }
+
+
+
+        .map-frame { flex: 1; border-radius: 40px; border: 1px solid rgba(255,255,255,0.04); background: #000; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.8); }
+
+
+
+        .content-grid {
+
+            display: flex;
+
+            flex: 1;
+
+            gap: 1.5rem;
+
+            min-height: 0;
+
+        }
+
+
+
+        .booking-rail {
+
+            width: 360px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            min-height: 0;
+
+        }
+
+
+
+        #booking-success-prompt {
+
+            position: fixed;
+
+            top: 40px;
+
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            background: var(--vexa-orange);
+
+            color: black;
+
+            padding: 16px 48px;
+
+            border-radius: 14px;
+
+            font-weight: 900;
+
+            z-index: 5000;
+
+            display: none;
+
+            box-shadow: 0 20px 50px rgba(255, 87, 34, 0.4);
+
+            text-transform: uppercase;
+
+        }
+
+
+
+        ::-webkit-scrollbar { width: 4px; }
+
+        ::-webkit-scrollbar-thumb { background: var(--vexa-orange); border-radius: 10px; }
+
+
+
+        @media (max-width: 1200px) {
+
+            body {
+
+                overflow: auto;
+
+                height: auto;
+
+            }
+
+            main {
+
+                flex-direction: column;
+
+            }
+
+            .sidebar {
+
+                width: 100%;
+
+            }
+
+            .content-grid {
+
+                flex-direction: column;
+
+            }
+
+            .booking-rail {
+
+                width: 100%;
+
+            }
+
+            .map-frame {
+
+                min-height: 520px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body class="flex p-8 h-screen">
+
+
+
+    <div class="mesh-container">
+
+        <div class="glow-sphere sphere-1"></div>
+
+        <div class="glow-sphere sphere-2"></div>
+
+    </div>
+
+    <div class="vignette"></div>
+
+
+
+    <div id="booking-success-prompt">BOOKING REQUEST SENT</div>
+
+
+
+    <div class="flex flex-col flex-1 gap-6 relative z-10">
+
+
+
+        <header class="nexus-panel rounded-[28px] px-10 py-6 flex justify-between items-center">
+
+            <div class="flex items-center gap-12">
+
+                <span class="text-3xl font-black tracking-tighter text-white">NEARY.OS</span>
+
+            </div>
+
+
+
+            <div class="flex items-center gap-4">
+
+                <div class="flex items-center gap-4">
+
+                    <div class="nav-icon-btn" onclick="openHistoryModal()" title="HISTORY">
+
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+
+                    </div>
+
+                    <div class="nav-icon-btn" id="header-gps" onclick="locateUser()" title="GPS">
+
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+
+                    </div>
+
+                    <div class="nav-icon-btn" onclick="openProfileModal()" title="PROFILE">
+
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+
+                    </div>
+
+                    <div class="nav-icon-btn" onclick="window.location.href='/logout'" title="EXIT">
+
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <main class="flex flex-1 gap-10 min-h-0">
+
+            <aside class="sidebar min-h-0">
+
+                <section id="selection-ui" class="nexus-panel stack-panel flex-1 gap-4">
+
+                    <h2 class="stack-title">Local Services</h2>
+
+                    <div class="protocol-list space-y-3 flex-1 overflow-y-auto pr-2">
+
+                        <div class="service-card active" id="card-guide" onclick="setMode('guide')">
+
+                            <h3 class="text-xl font-black mb-1">Guide</h3>
+
+                            <p class="text-[10px] opacity-50">Local guidance and on-ground support in your area.</p>
+
+                        </div>
+
+                        <div class="service-card" id="card-errand" onclick="setMode('errand')">
+
+                            <h3 class="text-xl font-black mb-1">Errand</h3>
+
+                            <p class="text-[10px] opacity-50">Pickup, delivery, and small local tasks handled nearby.</p>
+
+                        </div>
+
+                        <div class="service-card" id="card-queue" onclick="setMode('queue')">
+
+                            <h3 class="text-xl font-black mb-1">Queue</h3>
+
+                            <p class="text-[10px] opacity-50">Someone waits in line or holds your place for you.</p>
+
+                        </div>
+
+                        <div class="service-card" id="card-labour" onclick="setMode('labour')">
+
+                            <h3 class="text-xl font-black mb-1">Labour</h3>
+
+                            <p class="text-[10px] opacity-50">Help with physical work, shifting, setup, and support.</p>
+
+                        </div>
+
+                    </div>
+
+                    <button class="init-btn flex items-center justify-center gap-4 mt-2" onclick="openBookingModal()">
+
+                        <span>Continue</span>
+
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+
+                    </button>
+
+                </section>
+
+            </aside>
+
+
+            <div class="content-grid">
+
+                <div class="map-frame">
+
+                    <div id="map" class="w-full h-full"></div>
+
+                </div>
+
+                <aside class="booking-rail">
+
+                    <section class="nexus-panel stack-panel flex-1">
+
+                        <h2 class="stack-title">Active Bookings</h2>
+
+                        <div id="active-mission-grid" class="flex-1 overflow-y-auto pr-2"></div>
+
+                    </section>
+
+                </aside>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+
+    <!-- DETAILS MODAL -->
+
+    <div id="booking-modal" class="fixed inset-0 hidden items-center justify-center z-[2000] p-6 bg-black/70 backdrop-blur-md">
+
+        <div class="nexus-panel w-full max-w-lg p-12 border-white/5">
+
+            <div class="flex justify-between items-center mb-10">
+
+                <h2 class="text-3xl font-black text-white uppercase tracking-tight">Details</h2>
+
+                <button onclick="closeBookingModal()" class="text-[11px] font-bold text-vexa-orange uppercase tracking-widest">Close</button>
+
+            </div>
+
+            <div class="space-y-6">
+
+                <div class="grid grid-cols-2 gap-4">
+
+                    <div><span class="field-label">Service Date</span><input type="date" id="book-date" class="input-field"></div>
+
+                    <div><span class="field-label">Arrival Time</span><input type="time" id="book-time" class="input-field"></div>
+
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+
+                    <div><span class="field-label">Hours</span><input type="number" id="book-hours" value="1" min="1" oninput="updatePrice()" class="input-field"></div>
+
+                    <div><span class="field-label" id="label-people">No of Peoples</span><input type="number" id="book-people" min="1" oninput="updatePrice()" class="input-field"></div>
+
+                </div>
+
+
+
+                <div>
+
+                    <div class="flex justify-between items-end mb-2 ml-3">
+
+                        <span class="text-[10px] font-bold opacity-50 uppercase tracking-widest">Address</span>
+
+                        <button onclick="locateUser()" class="text-[9px] text-vexa-orange font-bold uppercase tracking-tighter hover:underline">Fetch GPS</button>
+
+                    </div>
+
+                    <textarea id="book-address" class="input-field h-32 resize-none" placeholder="Enter pickup/service address and helpful landmarks..."></textarea>
+
+                </div>
+
+
+
+                <div class="p-6 bg-white/5 border border-white/5 rounded-[20px] flex justify-between items-center">
+
+                    <div>
+
+                        <span class="text-[10px] font-bold opacity-50 uppercase tracking-widest">Payment</span>
+
+                        <p class="text-[11px] text-vexa-orange font-black">Cash on Delivery</p>
+
+                    </div>
+
+                    <div class="text-right">
+
+                        <span id="display-price" class="text-4xl font-black text-white">₹500</span>
+
+                    </div>
+
+                </div>
+
+
+
+                <button onclick="finalizeBooking()" class="init-btn mt-4">Book Now</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- BOOKING HISTORY MODAL -->
+
+    <div id="history-modal" class="fixed inset-0 hidden items-center justify-center z-[2000] p-6 bg-black/70 backdrop-blur-md">
+
+        <div class="nexus-panel w-full max-w-2xl p-12 border-white/5">
+
+            <div class="flex justify-between items-center mb-10">
+
+                <h2 class="text-3xl font-black text-white uppercase tracking-tighter">Booking History</h2>
+
+                <button onclick="closeHistoryModal()" class="text-[11px] font-bold text-vexa-orange uppercase tracking-widest">Close</button>
+
+            </div>
+
+            <div id="history-list" class="space-y-4 max-h-[60vh] overflow-y-auto pr-4"></div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- USER FEEDBACK MODAL -->
+
+    <div id="review-modal" class="fixed inset-0 hidden items-center justify-center z-[3000] p-6 bg-black/70 backdrop-blur-md">
+
+        <div class="nexus-panel w-full max-w-lg p-10 border-white/5">
+
+            <div class="flex justify-between items-center mb-8">
+
+                <div>
+
+                    <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Service Feedback</h2>
+
+                    <p id="review-subtitle" class="text-[10px] text-vexa-orange font-bold uppercase tracking-[3px] mt-2">Completed Service</p>
+
+                </div>
+
+                <button onclick="closeReviewModal()" class="text-[10px] font-bold text-vexa-orange uppercase tracking-widest">Close</button>
+
+            </div>
+
+            <div class="space-y-6">
+
+                <div>
+
+                    <span class="field-label">Rating</span>
+
+                    <div id="review-stars" class="grid grid-cols-5 gap-3"></div>
+
+                </div>
+
+                <div>
+
+                    <span class="field-label">Feedback</span>
+
+                    <textarea id="review-comment" class="input-field h-32 resize-none" placeholder="Share what went well or what should improve..."></textarea>
+
+                </div>
+
+                <button onclick="submitReview()" class="init-btn">Submit Feedback</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- TACTICAL CHAT MODAL -->
+
+    <div id="chat-modal" class="fixed inset-0 hidden items-center justify-center z-[3000] p-6 bg-black/70 backdrop-blur-md">
+
+        <div class="nexus-panel w-full max-w-lg p-10 border-white/5">
+
+            <div class="flex justify-between items-center mb-6">
+
+                <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Operational_Comms</h2>
+
+                <button onclick="closeChat()" class="text-[10px] font-bold text-vexa-orange uppercase tracking-widest">Minimize</button>
+
+            </div>
+
+            <div id="chat-messages" class="mb-6 h-[320px] overflow-y-auto flex flex-col gap-3 p-4 bg-black/40 rounded-[20px] border border-white/5"></div>
+
+            <div class="flex gap-3">
+
+                <input type="text" id="chat-input" class="input-field flex-1" placeholder="Type message...">
+
+                <button onclick="sendChatMessage()" class="init-btn !w-auto px-8 !py-3 !text-[10px]">Send</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- PROFILE MODAL -->
+
+    <div id="profile-modal" class="fixed inset-0 hidden items-center justify-center z-[2000] p-6 bg-black/70 backdrop-blur-md">
+
+        <div class="nexus-panel w-full max-w-md p-12 border-white/5">
+
+            <h2 class="text-3xl font-black mb-10 text-white uppercase tracking-tighter">My Profile</h2>
+
+            <div id="profile-content" class="space-y-6">
+
+                <div class="flex justify-between border-b border-white/5 pb-4"><span class="opacity-50 text-[11px] font-bold uppercase tracking-widest">Identity</span><span id="prof-name" class="font-black text-white uppercase tracking-tight">--</span></div>
+
+                <div class="flex justify-between border-b border-white/5 pb-4"><span class="opacity-50 text-[11px] font-bold uppercase tracking-widest">Identifier</span><span id="prof-email" class="font-black text-vexa-orange">--</span></div>
+
+                <div class="flex justify-between border-b border-white/5 pb-4"><span class="opacity-50 text-[11px] font-bold uppercase tracking-widest">Location</span><span id="prof-loc" class="opacity-70 italic font-medium">--</span></div>
+
+            </div>
+
+            <button class="init-btn w-full mt-12" onclick="closeProfileModal()">Lock Console</button>
+
+        </div>
+
+    </div>
+
+
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+
+        const API_BASE = window.location.origin + "/api";
+
+        const socket = { emit() {}, on() {} };
+
+        let map, userMarker = null, specialistMarkers = {};
+
+        let currentMode = 'guide', userCoords = { lat: 19.0760, lng: 72.8777 };
+
+        let activeMissions = [], currentHistory = [], currentChatId = null, chatInterval = null;
+
+        let currentReviewBookingId = null, selectedReviewRating = 5;
+
+        let missionTimers = {}; // Track timers to avoid duplication
+
+        const BASE_RATE = 500;
+
+
+
+        async function init() {
+
+            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([userCoords.lat, userCoords.lng], 12);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+            setMode('guide');
+
+            pollMissions();
+
+            setInterval(pollMissions, 8000);
+
+        }
+
+
+
+        async function pollMissions() {
+
+            try {
+
+                const res = await fetch(`${API_BASE}/user/active_bookings`);
+
+                activeMissions = await res.json();
+
+                const container = document.getElementById('active-mission-grid');
+
+
+
+                if (activeMissions.length > 0) {
+
+                    container.innerHTML = activeMissions.map(m => {
+
+                        const isLive = m.status === 'in_progress';
+
+                        const missionStart = new Date(`${m.date}T${m.time}`);
+
+                        const diffMins = (missionStart - new Date()) / 60000;
+
+                        const canTrack = diffMins <= 15 || isLive;
+
+
+
+                        if(canTrack) socket.emit('join_mission_stream', { booking_id: m.id });
+
+
+
+                        return `
+
+                        <div class="mission-transmission-card">
+
+                            <div class="flex justify-between items-center mb-4">
+
+                                <span class="status-pill">${m.status.replace(/_/g, ' ')}</span>
+
+                                <span class="text-[9px] font-bold opacity-30 tracking-[2px]">${m.service.toUpperCase()} SERVICE</span>
+
+                            </div>
+
+                            <h4 class="text-xl font-black text-white uppercase mb-4">${m.provider_name}</h4>
+
+                            ${isLive ? `<div class="timer-unit mb-4" id="timer-${m.id}">--:--</div>` : ''}
+
+                            <div class="otp-box bg-black/40 p-4 rounded-xl border border-white/5">
+
+                                <span class="text-[9px] uppercase tracking-[4px] opacity-50 font-black mb-2 block">${isLive ? 'Completion' : 'Start'} OTP</span>
+
+                                <span class="otp-value">${m.otp}</span>
+
+                            </div>
+
+                            <div class="flex gap-2 mt-4">
+
+                                <button onclick="openChat(${m.id})" class="init-btn !bg-transparent border border-vexa-orange !text-vexa-orange !text-[9px] hover:!bg-vexa-orange/10">Chat</button>
+
+                                ${canTrack ? `<div class="flex-1 flex items-center justify-center"><span class="text-[8px] text-green-500 font-bold animate-pulse uppercase tracking-widest">Tracking Live</span></div>` : ''}
+
+                            </div>
+
+                        </div>
+
+                        `;
+
+                    }).join('');
+
+
+
+                    activeMissions.forEach(m => {
+
+                        if(m.status === 'in_progress') runTimer(m.id, m.start_time, m.hours);
+
+                    });
+
+                } else {
+
+                    container.innerHTML = '';
+
+                }
+
+            } catch (e) {}
+
+        }
+
+
+
+        socket.on('specialist_moved', (data) => {
+
+            const mission = activeMissions.find(x => x.id == data.booking_id);
+
+            if (!mission) return;
+
+
+
+            const missionStart = new Date(`${mission.date}T${mission.time}`);
+
+            const diffMins = (missionStart - new Date()) / 60000;
+
+            if (diffMins > 15 && mission.status === 'accepted') return;
+
+
+
+            if (!specialistMarkers[data.booking_id]) {
+
+                specialistMarkers[data.booking_id] = L.marker([data.lat, data.lng], {
+
+                    icon: L.divIcon({
+
+                        html: `<div style="width:20px; height:20px; background:var(--vexa-orange); border:4px solid white; border-radius:50%; box-shadow:0 0 20px var(--vexa-orange);"></div>`,
+
+                        className: ''
+
+                    })
+
+                }).addTo(map);
+
+            } else {
+
+                specialistMarkers[data.booking_id].setLatLng([data.lat, data.lng]);
+
+            }
+
+        });
+
+
+
+        async function openHistoryModal() {
+
+            document.getElementById('history-modal').classList.remove('hidden');
+
+            document.getElementById('history-modal').classList.add('flex');
+
+            try {
+
+                const res = await fetch(`${API_BASE}/user/history`);
+
+                const data = await res.json();
+
+                const list = document.getElementById('history-list');
+
+                if (data.length === 0) {
+
+                    list.innerHTML = `<p class="text-center opacity-40 text-[11px] py-10 uppercase tracking-widest">No Bookings Yet</p>`;
+
+                    return;
+
+                }
+
+                currentHistory = data;
+
+                list.innerHTML = data.map(h => `
+
+                    <div class="flex justify-between items-center gap-6 p-6 bg-white/5 border border-white/5 rounded-2xl">
+
+                        <div>
+                            <p class="font-black text-white uppercase text-sm">${h.service}</p>
+                            <p class="text-[10px] opacity-40 uppercase">${h.date} // ${h.provider_name}</p>
+                            ${h.review_rating ? `<p class="text-[10px] text-vexa-orange font-black uppercase tracking-widest mt-2">${'★'.repeat(h.review_rating)}${'☆'.repeat(5 - h.review_rating)}</p>` : ''}
+                        </div>
+
+                        <div class="text-right min-w-[150px]"><p class="font-black text-vexa-orange">₹${h.total}</p><p class="text-[9px] uppercase opacity-40 mb-3">${h.status}</p>${h.can_review ? `<button onclick="openReviewModal(${h.id})" class="init-btn !py-2 !px-4 !text-[9px]">Feedback</button>` : ''}</div>
+
+                    </div>
+
+                `).join('');
+
+            } catch (e) {}
+
+        }
+
+
+
+        function renderReviewStars() {
+
+            const stars = document.getElementById('review-stars');
+
+            stars.innerHTML = [1, 2, 3, 4, 5].map(value => `
+
+                <button onclick="setReviewRating(${value})" class="py-4 rounded-xl border ${value <= selectedReviewRating ? 'border-vexa-orange bg-vexa-orange text-black' : 'border-white/10 bg-white/5 text-white/40'} font-black text-xl transition">★</button>
+
+            `).join('');
+
+        }
+
+
+
+        window.setReviewRating = (rating) => {
+
+            selectedReviewRating = rating;
+
+            renderReviewStars();
+
+        };
+
+
+
+        window.openReviewModal = (bookingId) => {
+
+            const booking = currentHistory.find(h => h.id === bookingId);
+
+            if (!booking) return;
+
+            currentReviewBookingId = bookingId;
+
+            selectedReviewRating = 5;
+
+            document.getElementById('review-subtitle').innerText = `${booking.service} // ${booking.provider_name}`;
+
+            document.getElementById('review-comment').value = '';
+
+            renderReviewStars();
+
+            const modal = document.getElementById('review-modal');
+
+            modal.classList.remove('hidden');
+
+            modal.classList.add('flex');
+
+        };
+
+
+
+        window.closeReviewModal = () => {
+
+            const modal = document.getElementById('review-modal');
+
+            modal.classList.remove('flex');
+
+            modal.classList.add('hidden');
+
+            currentReviewBookingId = null;
+
+        };
+
+
+
+        window.submitReview = async () => {
+
+            if (!currentReviewBookingId) return;
+
+            const res = await fetch(`${API_BASE}/user/review`, {
+
+                method: 'POST',
+
+                headers: {'Content-Type': 'application/json'},
+
+                body: JSON.stringify({
+
+                    booking_id: currentReviewBookingId,
+
+                    rating: selectedReviewRating,
+
+                    comment: document.getElementById('review-comment').value
+
+                })
+
+            });
+
+            const result = await res.json();
+
+            if (result.status === 'success') {
+
+                closeReviewModal();
+
+                openHistoryModal();
+
+            } else {
+
+                alert(result.message || 'Feedback could not be saved.');
+
+            }
+
+        };
+
+
+
+        window.finalizeBooking = async () => {
+
+            const addr = document.getElementById('book-address').value.trim();
+            const date = document.getElementById('book-date').value;
+            const time = document.getElementById('book-time').value;
+            const hours = document.getElementById('book-hours').value || 1;
+            const people = document.getElementById('book-people').value || (currentMode === 'guide' ? 1 : 0);
+
+            if(!date || !time) {
+                alert('Please select service date and time.');
+                return;
+            }
+
+            if(!addr) {
+                alert('Please enter the service address.');
+                return;
+            }
+
+
+
+            const data = {
+
+                service_type: currentMode,
+
+                date: date,
+
+                time: time,
+
+                hours: hours,
+
+                people: people || 0,
+
+                address: addr,
+
+                price: parseFloat(document.getElementById('display-price').innerText.replace('₹', '')),
+
+                lat: userCoords.lat, lng: userCoords.lng
+
+            };
+
+
+
+            const res = await fetch(`${API_BASE}/user/book`, {
+
+                method: 'POST',
+
+                headers: {'Content-Type': 'application/json'},
+
+                body: JSON.stringify(data)
+
+            });
+
+            const result = await res.json();
+
+            if(result.status === 'success') {
+
+                closeBookingModal();
+
+                const prompt = document.getElementById('booking-success-prompt');
+                prompt.style.display = 'block';
+                setTimeout(() => prompt.style.display = 'none', 2200);
+
+                pollMissions();
+
+            } else {
+
+                if (res.status === 401) {
+                    alert(result.message || 'Please log in again as a user to continue booking.');
+                    window.location.href = '/';
+                    return;
+                }
+
+                alert(result.message || 'Booking could not be created.');
+
+            }
+
+        };
+
+
+
+        window.locateUser = function() {
+
+            if (navigator.geolocation) {
+
+                navigator.geolocation.getCurrentPosition((pos) => {
+
+                    userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+
+                    map.setView([userCoords.lat, userCoords.lng], 16);
+
+                    if(userMarker) map.removeLayer(userMarker);
+
+                    userMarker = L.marker([userCoords.lat, userCoords.lng], {
+
+                        icon: L.divIcon({ html: `<div style="width:16px; height:16px; background:#fff; border:4px solid var(--vexa-orange); border-radius:50%; box-shadow:0 0 10px white;"></div>`, className: '' })
+
+                    }).addTo(map);
+
+                });
+
+            }
+
+        };
+
+
+
+        window.setMode = (m) => {
+
+            currentMode = m;
+
+            document.querySelectorAll('.service-card').forEach(c => c.classList.remove('active'));
+
+            document.getElementById(`card-${m}`).classList.add('active');
+
+            document.getElementById('label-people').innerText = m === 'guide' ? "No of Peoples (Required)" : "No of Peoples (Optional)";
+
+        };
+
+
+
+        function runTimer(id, start, hrs) {
+
+            const el = document.getElementById(`timer-${id}`);
+
+            if(!el || missionTimers[id]) return;
+
+
+
+            const end = new Date(start).getTime() + (hrs * 3600000);
+
+            missionTimers[id] = setInterval(() => {
+
+                const diff = end - new Date().getTime();
+
+                if(diff <= 0) {
+
+                    el.innerText = "00:00";
+
+                    clearInterval(missionTimers[id]);
+
+                    delete missionTimers[id];
+
+                    return;
+
+                }
+
+                const m = Math.floor(diff/60000), s = Math.floor((diff%60000)/1000);
+
+                el.innerText = `${m}:${s < 10 ? '0'+s : s}`;
+
+            }, 1000);
+
+        }
+
+
+
+        window.openBookingModal = () => {
+
+            const modal = document.getElementById('booking-modal');
+
+            modal.classList.remove('hidden');
+
+            modal.classList.add('flex');
+
+            document.getElementById('book-date').value = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 30);
+            document.getElementById('book-time').value = now.toTimeString().slice(0, 5);
+            if (!document.getElementById('book-people').value) document.getElementById('book-people').value = currentMode === 'guide' ? 1 : '';
+            updatePrice();
+
+        };
+
+
+
+        window.updatePrice = () => {
+
+            const h = document.getElementById('book-hours').value || 1;
+
+            const p = document.getElementById('book-people').value || 1;
+
+            document.getElementById('display-price').innerText = `₹${h * (currentMode === 'guide' ? p : 1) * BASE_RATE}`;
+
+        };
+
+
+
+        window.openChat = (id) => {
+
+            currentChatId = id;
+
+            const modal = document.getElementById('chat-modal');
+
+            modal.classList.remove('hidden');
+
+            modal.classList.add('flex');
+
+            updateChat();
+
+            chatInterval = setInterval(updateChat, 3000);
+
+        };
+
+
+
+        window.closeChat = () => {
+
+            const modal = document.getElementById('chat-modal');
+
+            modal.classList.remove('flex');
+
+            modal.classList.add('hidden');
+
+            clearInterval(chatInterval);
+
+            currentChatId = null;
+
+        };
+
+
+
+        async function updateChat() {
+
+            if(!currentChatId) return;
+
+            const res = await fetch(`${API_BASE}/mission/chat?booking_id=${currentChatId}`);
+
+            const msgs = await res.json();
+
+            document.getElementById('chat-messages').innerHTML = msgs.map(m => `<div class="msg-bubble ${m.sender === 'user' ? 'msg-user' : 'msg-provider'}">${m.text}</div>`).join('');
+
+            document.getElementById('chat-messages').scrollTop = 9999;
+
+        }
+
+
+
+        window.sendChatMessage = async () => {
+
+            const inp = document.getElementById('chat-input');
+
+            if(!inp.value.trim() || !currentChatId) return;
+
+            await fetch(`${API_BASE}/mission/chat`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({booking_id:currentChatId, text:inp.value}) });
+
+            inp.value = ''; updateChat();
+
+        };
+
+
+
+        window.openProfileModal = async function() {
+
+            const modal = document.getElementById('profile-modal');
+
+            modal.classList.remove('hidden');
+
+            modal.classList.add('flex');
+
+
+
+            try {
+
+                const res = await fetch(`${API_BASE}/user/profile`);
+
+                const data = await res.json();
+
+                if (data.status === 'success') {
+
+                    document.getElementById('prof-name').innerText = data.user.name || "User";
+
+                    document.getElementById('prof-email').innerText = data.user.email || "N/A";
+
+                    document.getElementById('prof-loc').innerText = data.user.location || "Mumbai Sector";
+
+                }
+
+            } catch (e) {
+
+                document.getElementById('prof-name').innerText = "Profile Unavailable";
+
+            }
+
+        };
+
+
+
+        window.closeBookingModal = () => { const m = document.getElementById('booking-modal'); m.classList.remove('flex'); m.classList.add('hidden'); };
+
+        window.closeHistoryModal = () => { const m = document.getElementById('history-modal'); m.classList.remove('flex'); m.classList.add('hidden'); };
+
+        window.closeProfileModal = () => { const m = document.getElementById('profile-modal'); m.classList.remove('flex'); m.classList.add('hidden'); };
+
+
+
+        window.onload = init;
+
+    </script>
+
+</body>
+
+</html>
+
+

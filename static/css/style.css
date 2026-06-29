@@ -1,0 +1,54 @@
+:root {
+    --accent: #d35400;
+    --glass: rgba(255, 255, 255, 0.45);
+}
+
+body {
+    margin: 0; height: 100vh; font-family: 'Segoe UI', sans-serif;
+    background: #fdf2e9; display: flex; justify-content: center; align-items: center;
+    overflow: hidden;
+}
+
+/* Aura Background Blobs */
+.aura { position: absolute; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.4; }
+.aura-1 { width: 400px; height: 400px; background: #f39c12; top: -100px; right: -50px; }
+.aura-2 { width: 450px; height: 450px; background: #e67e22; bottom: -100px; left: -50px; }
+
+.glass-container {
+    width: 94vw; height: 90vh; background: var(--glass);
+    backdrop-filter: blur(20px); border: 1.5px solid rgba(255,255,255,0.6);
+    border-radius: 35px; padding: 30px; display: flex; flex-direction: column; gap: 20px;
+}
+
+.navbar { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+
+.search-area {
+    flex: 1; background: white; padding: 10px 20px; border-radius: 20px;
+    display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.search-tag { font-weight: bold; color: var(--accent); font-size: 0.8rem; margin-right: 15px; }
+.search-area input { border: none; width: 100%; outline: none; font-size: 1rem; }
+
+.nav-right { display: flex; gap: 15px; align-items: center; }
+.nav-icon-btn, .profile-avatar {
+    width: 48px; height: 48px; background: white; border-radius: 15px;
+    display: flex; justify-content: center; align-items: center; font-size: 1.3rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer;
+}
+
+.content-wrapper { display: flex; flex: 1; gap: 25px; }
+.selection-sidebar { width: 260px; display: flex; flex-direction: column; gap: 15px; }
+
+.service-chip {
+    padding: 25px; background: rgba(255,255,255,0.6); border-radius: 20px;
+    text-align: center; cursor: pointer; transition: 0.3s;
+}
+.service-chip.active { background: white; border: 2px solid var(--accent); }
+
+.map-viewport { flex: 1; border-radius: 30px; border: 2px solid white; z-index: 1; }
+
+.action-btn {
+    margin-top: auto; padding: 18px; background: #2c3e50; color: white;
+    border: none; border-radius: 15px; font-weight: bold; cursor: pointer;
+}

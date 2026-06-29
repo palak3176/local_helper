@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEARY.OS // GATEWAY_TERMINAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --neon-orange: #ff6b00;
+            --deep-void: #020202;
+            --glass-stroke: rgba(255, 107, 0, 0.15);
+            --glass-fill: rgba(8, 8, 10, 0.9);
+            /* Simple basic system font stack */
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        body {
+            background-color: var(--deep-void);
+            color: #fff;
+            font-family: var(--font-main);
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+            background-image:
+                linear-gradient(rgba(255, 107, 0, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 107, 0, 0.01) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .font-basic { font-family: var(--font-main); }
+        .mono { font-family: var(--font-mono); font-size: 0.85em; }
+
+        .nexus-panel {
+            background: var(--glass-fill);
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid var(--glass-stroke);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            width: 100%;
+            outline: none;
+            font-size: 0.85rem;
+            transition: 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: var(--neon-orange);
+            background: rgba(255, 107, 0, 0.05);
+        }
+
+        .btn-primary {
+            background: var(--neon-orange);
+            color: black;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 1rem;
+            border-radius: 14px;
+            width: 100%;
+            transition: 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 30px rgba(255, 107, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--glass-stroke);
+            color: var(--neon-orange);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 1rem;
+            border-radius: 14px;
+            width: 100%;
+            transition: 0.3s;
+            font-size: 0.8rem;
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 107, 0, 0.1);
+            border-color: var(--neon-orange);
+        }
+
+        .view-transition {
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .hidden-view {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .data-label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.5;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        h1, h2, h3 {
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-6">
+
+    <div id="gateway-view" class="view-transition w-full max-w-lg text-center">
+        <div class="mb-12">
+            <h1 class="text-5xl mb-2">NEARY.OS</h1>
+            <p class="mono tracking-[8px] opacity-30 uppercase">Central Access Gateway</p>
+        </div>
+
+        <div class="nexus-panel p-10 rounded-[40px] space-y-4">
+            <button onclick="switchView('register-user')" class="btn-primary">Register as User</button>
+            <button onclick="window.location.href='/register-sp'" class="btn-outline">Register as Provider</button>
+            <div class="py-4 flex items-center gap-4">
+                <div class="h-[1px] flex-1 bg-white/10"></div>
+                <span class="mono text-[8px] opacity-20 uppercase">Existing Nodes</span>
+                <div class="h-[1px] flex-1 bg-white/10"></div>
+            </div>
+            <button onclick="switchView('login')" class="btn-outline">Login to Terminal</button>
+        </div>
+    </div>
+
+    <!-- USER REGISTRATION VIEW -->
+    <div id="register-user-view" class="view-transition hidden-view w-full max-w-xl">
+        <div class="nexus-panel p-12 rounded-[40px]">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl uppercase">User_Onboarding</h2>
+                <button onclick="switchView('gateway')" class="mono opacity-30 hover:opacity-100 uppercase tracking-widest">Back</button>
+            </div>
+
+            <form id="userRegForm" class="space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="data-label">Full Name</span>
+                        <input type="text" name="name" class="input-field" required>
+                    </div>
+                    <div>
+                        <span class="data-label">Age</span>
+                        <input type="number" name="age" class="input-field" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="data-label">Phone_Sync</span>
+                        <div class="flex gap-2">
+                            <input type="text" name="phone" class="input-field" placeholder="+91..." required>
+                            <button type="button" class="px-4 bg-white/5 rounded-xl mono uppercase border border-white/10 text-[9px]">Verify</button>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="data-label">Gmail_Auth</span>
+                        <div class="flex gap-2">
+                            <input type="email" name="email" class="input-field" placeholder="node@gmail.com" required>
+                            <button type="button" class="px-4 bg-white/5 rounded-xl mono uppercase border border-white/10 text-[9px]">Auth</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="data-label">Current_Grid_Location</span>
+                    <div class="flex gap-2">
+                        <input type="text" name="location" id="loc-input" class="input-field" placeholder="Fetching coordinates..." readonly>
+                        <button type="button" onclick="getLocation()" class="px-4 bg-orange-500/10 text-orange-500 rounded-xl mono uppercase border border-orange-500/20 text-[9px]">GPS</button>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="data-label">Access_Password</span>
+                    <input type="password" name="password" class="input-field" required>
+                </div>
+
+                <button type="submit" class="btn-primary mt-4">Initialize Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOGIN VIEW -->
+    <div id="login-view" class="view-transition hidden-view w-full max-w-md">
+        <div class="nexus-panel p-12 rounded-[40px]">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-2xl uppercase tracking-tight">Login_Auth</h2>
+                <button onclick="switchView('gateway')" class="mono opacity-30 hover:opacity-100 uppercase tracking-widest">Cancel</button>
+            </div>
+
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <span class="data-label">Gmail_Identifier</span>
+                    <input type="email" name="email" class="input-field" required>
+                </div>
+                <div>
+                    <span class="data-label">Access_Key</span>
+                    <input type="password" name="password" class="input-field" required>
+                </div>
+                <button type="submit" class="btn-primary mt-6">Authorize Session</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function switchView(viewId) {
+            const views = ['gateway', 'register-user', 'login'];
+            views.forEach(v => {
+                const el = document.getElementById(v + '-view');
+                el.classList.add('hidden-view');
+                setTimeout(() => el.style.display = 'none', 400);
+            });
+
+            setTimeout(() => {
+                const target = document.getElementById(viewId + '-view');
+                target.style.display = 'block';
+                setTimeout(() => target.classList.remove('hidden-view'), 50);
+            }, 400);
+        }
+
+        function getLocation() {
+            const btn = event.target;
+            btn.innerText = "TRIANGULATING...";
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    document.getElementById('loc-input').value = `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+                    btn.innerText = "LOCKED";
+                }, () => {
+                    document.getElementById('loc-input').value = "Mumbai Central Sector";
+                    btn.innerText = "MANUAL";
+                });
+            }
+        }
+
+        // Form Handlers
+        document.getElementById('userRegForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const res = await fetch('/api/auth/register-user', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if(result.status === 'success') {
+                    alert("Account Initialized. Log in to continue.");
+                    switchView('login');
+                }
+            } catch (err) { alert("Registration Uplink Failed."); }
+        };
+
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if(result.status === 'success') {
+                    window.location.href = result.redirect;
+                } else {
+                    alert("Auth Denied: Invalid Identifier/Key");
+                }
+            } catch (err) { alert("Auth Server Offline."); }
+        };
+    </script>
+</body>
+</html>

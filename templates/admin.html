@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEARY.CORE // NEXUS_ADMIN_V8</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --plasma-orange: #ff6b00;
+            --plasma-blue: #00d2ff;
+            --void-black: #020202;
+            --glass-shine: rgba(255, 255, 255, 0.03);
+            --slab-radius: 40px;
+        }
+
+        body { background-color: var(--void-black); color: #fff; font-family: 'Space Grotesk', sans-serif; overflow: hidden; height: 100vh; margin: 0; }
+        .syne { font-family: 'Syne', sans-serif; }
+        .nexus-slab { background: rgba(12, 12, 12, 0.6); backdrop-filter: blur(40px) saturate(200%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--slab-radius); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5); }
+        
+        .nav-spine { position: fixed; left: 2rem; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 1.5rem; z-index: 50; }
+        .spine-trigger { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--glass-shine); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; color: rgba(255,255,255,0.4); transition: 0.4s; }
+        .spine-trigger.active { background: var(--plasma-orange); color: black; box-shadow: 0 0 30px var(--plasma-orange); border-color: transparent; }
+
+        .stat-card { background: rgba(255, 255, 255, 0.02); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.3s; }
+        .stat-card:hover { background: rgba(255, 255, 255, 0.04); border-color: var(--plasma-orange); }
+
+        .tab-trigger { font-family: 'Syne', sans-serif; letter-spacing: 2px; text-transform: uppercase; font-size: 0.65rem; padding: 8px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .tab-trigger.active { background: white; color: black; border-color: white; }
+
+        #tactical-inspector { background: rgba(2, 2, 2, 0.95); backdrop-filter: blur(20px); z-index: 100; }
+        .feedback-chip { background: rgba(255, 107, 0, 0.08); border: 1px solid rgba(255, 107, 0, 0.18); border-radius: 16px; padding: 14px 16px; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--plasma-orange); border-radius: 10px; }
+    </style>
+</head>
+<body class="flex p-8">
+
+    <!-- TACTICAL NAVIGATION SPINE -->
+    <nav class="nav-spine">
+        <button onclick="switchView('dashboard')" class="spine-trigger active" id="nav-dashboard"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></button>
+        <button onclick="switchView('approvals')" class="spine-trigger" id="nav-approvals"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>
+    </nav>
+
+    <main class="ml-32 flex-1 flex flex-col gap-10">
+        <!-- HEADER -->
+        <header class="flex justify-between items-center pb-6">
+            <div class="flex items-center gap-6">
+                <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black font-black syne">N</div>
+                <div>
+                    <h1 class="text-3xl font-extrabold syne uppercase tracking-tight">NEARY HUB</h1>
+                    <p class="text-[10px] tracking-[4px] uppercase opacity-30 font-bold">SQL_SYNC_ACTIVE: PORT_5000</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p id="clock" class="text-2xl font-bold syne text-white">00:00:00</p>
+                <button onclick="window.location.href='/logout'" class="text-[9px] text-orange-500 font-bold uppercase tracking-widest hover:underline">Terminate Admin Session</button>
+            </div>
+        </header>
+
+        <section class="flex-1 nexus-slab p-12 overflow-y-auto relative">
+            <!-- DASHBOARD VIEW -->
+            <div id="view-dashboard" class="view-content">
+                <h2 class="syne text-xs font-bold tracking-[8px] uppercase text-orange-500 mb-12">Live Telemetry</h2>
+                <div class="grid grid-cols-4 gap-6">
+                    <div class="stat-card p-8 group">
+                        <span class="text-[9px] font-bold text-white/30 uppercase tracking-widest">Pending Verification</span>
+                        <h3 id="stat-pending" class="text-5xl font-black syne mt-3 group-hover:text-orange-500 transition">00</h3>
+                    </div>
+                    <div class="stat-card p-8 group">
+                        <span class="text-[9px] font-bold text-white/30 uppercase tracking-widest">Approved Nodes</span>
+                        <h3 id="stat-approved" class="text-5xl font-black syne mt-3 group-hover:text-blue-400 transition">00</h3>
+                    </div>
+                    <div class="stat-card p-8 group">
+                        <span class="text-[9px] font-bold text-white/30 uppercase tracking-widest">Rejected Nodes</span>
+                        <h3 id="stat-rejected" class="text-5xl font-black syne mt-3 group-hover:text-red-500 transition">00</h3>
+                    </div>
+                    <div class="stat-card p-8 group">
+                        <span class="text-[9px] font-bold text-white/30 uppercase tracking-widest">Total Grid Capacity</span>
+                        <h3 id="stat-total" class="text-5xl font-black syne mt-3 group-hover:text-cyan-400 transition">00</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- APPROVALS VIEW -->
+            <div id="view-approvals" class="view-content hidden">
+                <div class="flex justify-between items-center mb-12">
+                    <div>
+                        <h2 class="syne text-2xl font-black uppercase">Verification Vault</h2>
+                        <p class="text-[9px] tracking-widest opacity-30 font-bold uppercase">Provider Onboarding Queue</p>
+                    </div>
+                    <div class="flex gap-2 bg-white/5 p-1.5 rounded-2xl">
+                        <button onclick="changeFilter('pending')" class="status-tab tab-trigger active" id="tab-pending">Queue</button>
+                        <button onclick="changeFilter('approved')" class="status-tab tab-trigger" id="tab-approved">Verified</button>
+                        <button onclick="changeFilter('rejected')" class="status-tab tab-trigger" id="tab-rejected">Void</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="provider-list">
+                    <!-- Loaded Dynamically -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- TACTICAL INSPECTOR MODAL -->
+    <div id="tactical-inspector" class="fixed inset-0 hidden items-center justify-center p-8 z-[100]">
+        <div class="nexus-slab w-full max-w-5xl h-[85vh] overflow-hidden flex relative">
+
+            <!-- Left Panel: Document Visualizer -->
+            <div class="w-1/2 p-10 border-r border-white/10 flex flex-col">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-[10px] font-black tracking-[4px] uppercase text-orange-500">Credential_Auth</span>
+                    <span id="inspect-file-type" class="text-[9px] font-mono opacity-40 uppercase">Format: Unknown</span>
+                </div>
+
+                <div class="flex-1 bg-black/40 border border-white/10 rounded-3xl overflow-hidden relative">
+                    <!-- PDF Support: Iframe -->
+                    <iframe id="inspect-aadhaar-frame" class="w-full h-full hidden" frameborder="0"></iframe>
+                    <!-- Image Support: standard img tag -->
+                    <img id="inspect-aadhaar-img" class="w-full h-full object-contain p-4 hidden" alt="Aadhaar Doc">
+
+                    <div id="no-doc-placeholder" class="w-full h-full flex items-center justify-center opacity-20 uppercase font-black text-xs tracking-widest">
+                        Payload_Missing
+                    </div>
+                </div>
+                <p class="mt-4 text-[9px] opacity-30 italic text-center">Verify document integrity before authorization.</p>
+            </div>
+
+            <!-- Right Panel: Specialist Metadata -->
+            <div class="w-1/2 p-10 flex flex-col bg-white/[0.01]">
+                <button onclick="closeInspector()" class="self-end text-[10px] font-bold opacity-30 hover:opacity-100 hover:text-orange-500 transition uppercase tracking-widest">[ Close_Terminal ]</button>
+
+                <div class="flex items-center gap-6 mt-6">
+                    <img id="inspect-profile-img" src="" class="w-24 h-24 rounded-2xl bg-white/5 object-cover grayscale border border-white/10" alt="Specialist Profile">
+                    <div>
+                        <h3 id="inspect-name" class="syne text-3xl font-black uppercase tracking-tight text-white">--</h3>
+                        <p id="inspect-id" class="text-[9px] opacity-40 font-mono mt-1 tracking-widest">UID_NODE_--</p>
+                    </div>
+                </div>
+
+                <div class="mt-12 space-y-8">
+                    <div>
+                        <p class="text-[10px] opacity-20 uppercase font-bold tracking-widest mb-4">Neural Interests</p>
+                        <div id="inspect-interests" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-[10px] opacity-20 uppercase font-bold tracking-widest">Contact_Link</p>
+                            <p id="inspect-phone" class="text-xl font-bold syne mt-1 text-orange-500">--</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] opacity-20 uppercase font-bold tracking-widest">Gmail_Auth</p>
+                            <p id="inspect-email" class="text-sm font-bold syne mt-2 opacity-80">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-10 flex gap-4" id="inspect-actions">
+                    <!-- Buttons Loaded Based on Status -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "/api/admin";
+        let providers = [];
+        let currentStatusFilter = 'pending';
+
+        // Initialize clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
+        }, 1000);
+
+        async function fetchStats() {
+            try {
+                const res = await fetch(`${API_BASE}/stats`);
+                const data = await res.json();
+                document.getElementById('stat-pending').innerText = (data.pending || 0).toString().padStart(2, '0');
+                document.getElementById('stat-approved').innerText = (data.approved || 0).toString().padStart(2, '0');
+                document.getElementById('stat-rejected').innerText = (data.rejected || 0).toString().padStart(2, '0');
+                document.getElementById('stat-total').innerText = (data.total || 0).toString().padStart(2, '0');
+            } catch (e) { console.error("Telemetry failed"); }
+        }
+
+        async function fetchProviders(status) {
+            currentStatusFilter = status;
+            const container = document.getElementById('provider-list');
+            container.innerHTML = '<div class="col-span-full py-24 text-center opacity-20 animate-pulse uppercase tracking-[15px] syne text-xs">Synchronizing Sector...</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/providers?status=${status}`);
+                providers = await res.json();
+                renderProviders();
+            } catch (e) {
+                container.innerHTML = '<div class="col-span-full py-24 text-center text-red-500 text-[10px] font-bold uppercase tracking-widest">SQL Sector Connection Failure</div>';
+            }
+        }
+
+        function buildAvatar(name) {
+            const initials = (name || 'Provider')
+                .split(' ')
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(part => part[0].toUpperCase())
+                .join('') || 'P';
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" rx="28" fill="#131313"/><rect x="8" y="8" width="144" height="144" rx="24" fill="#1b1b1b" stroke="#ff6b00" stroke-opacity="0.32"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="54" font-weight="700">${initials}</text></svg>`;
+            return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+        }
+
+        function providerPhotoSrc(provider) {
+            return provider.photo && provider.photo.trim() ? provider.photo : buildAvatar(provider.name);
+        }
+
+        function renderProviders() {
+            const container = document.getElementById('provider-list');
+            if (providers.length === 0) {
+                container.innerHTML = `<div class="col-span-full p-32 text-center opacity-10 syne text-4xl font-black uppercase tracking-[25px]">Void</div>`;
+                return;
+            }
+
+            container.innerHTML = providers.map(p => `
+                <div class="stat-card p-10 flex flex-col gap-8 group">
+                    <div class="flex items-center gap-8">
+                        <div class="w-24 h-24 rounded-3xl bg-black p-1 border border-white/5 rotate-2 group-hover:rotate-0 transition duration-500 overflow-hidden">
+                            <img src="${providerPhotoSrc(p)}" data-fallback="${buildAvatar(p.name)}" onerror="this.onerror=null;this.src=this.dataset.fallback;" class="w-full h-full rounded-[20px] object-cover grayscale group-hover:grayscale-0 transition duration-700">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <h4 class="text-2xl font-black syne tracking-tight uppercase text-white/90">${p.name}</h4>
+                                <span class="text-[8px] font-mono opacity-20">UID_${p.id}</span>
+                            </div>
+                            <p class="text-[10px] text-orange-500 font-black tracking-widest mt-1 opacity-70">${p.phone}</p>
+                            ${p.status === 'approved' ? `<div class="flex gap-6 mt-4 text-[10px] uppercase tracking-widest"><span class="text-white/35">Completed: <span class="text-white font-bold">${p.completed_jobs || 0}</span></span><span class="text-white/35">Rating: <span class="text-orange-500 font-bold">${p.avg_rating ? `${p.avg_rating}/5` : 'No ratings yet'}</span></span></div>` : ''}
+                        </div>
+                    </div>
+                    ${p.status === 'approved' ? `
+                        <div class="space-y-3">
+                            <p class="text-[10px] font-bold uppercase tracking-[4px] text-white/30">Recent User Feedback</p>
+                            ${p.feedback_history && p.feedback_history.length ? p.feedback_history.map(item => `
+                                <div class="feedback-chip">
+                                    <div class="flex justify-between items-start gap-4 mb-2">
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-white">${item.user_name}</p>
+                                        <p class="text-[10px] font-black text-orange-500">${item.rating ? `${'★'.repeat(item.rating)}${'☆'.repeat(5 - item.rating)}` : 'No rating'}</p>
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-widest text-white/35 mb-2">${item.service} // ${item.date}</p>
+                                    <p class="text-sm text-white/70 leading-relaxed">${item.comment || 'No written feedback shared by the user.'}</p>
+                                </div>
+                            `).join('') : `<div class="feedback-chip"><p class="text-sm text-white/55">No completed-service feedback yet.</p></div>`}
+                        </div>
+                    ` : ''}
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="openInspector(${p.id})" class="text-center py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-bold tracking-widest hover:bg-white/10 transition uppercase">Inspect</button>
+                        ${p.status === 'pending' ? `
+                            <button onclick="updateStatus(${p.id}, 'approved')" class="py-4 bg-orange-600 text-black rounded-2xl text-[10px] font-black tracking-widest hover:shadow-[0_0_30px_#ff6b0044] transition uppercase">Authorize</button>
+                        ` : `<button onclick="openInspector(${p.id})" class="py-4 bg-orange-600/12 text-orange-400 rounded-2xl text-[10px] font-black tracking-widest border border-orange-500/20 uppercase">View History</button>`}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function updateStatus(id, status) {
+            try {
+                await fetch(`${API_BASE}/update_provider`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, status })
+                });
+                fetchProviders(currentStatusFilter);
+                fetchStats();
+            } catch (e) { alert("Grid Downlink Error"); }
+        }
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden'));
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            document.querySelectorAll('.spine-trigger').forEach(b => b.classList.remove('active'));
+            document.getElementById(`nav-${viewName}`).classList.add('active');
+
+            if (viewName === 'dashboard') fetchStats();
+            if (viewName === 'approvals') fetchProviders(currentStatusFilter);
+        }
+
+        function changeFilter(status) {
+            document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${status}`).classList.add('active');
+            fetchProviders(status);
+        }
+
+        function openInspector(id) {
+            const p = providers.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById('inspect-name').innerText = p.name;
+            document.getElementById('inspect-id').innerText = `UID_NODE_${p.id}_SEC_MUM`;
+            document.getElementById('inspect-phone').innerText = p.phone;
+            document.getElementById('inspect-email').innerText = p.email;
+            const profileImg = document.getElementById('inspect-profile-img');
+            profileImg.dataset.fallback = buildAvatar(p.name);
+            profileImg.onerror = function () { this.onerror = null; this.src = this.dataset.fallback; };
+            profileImg.src = providerPhotoSrc(p);
+
+            // --- DOCUMENT VISUALIZER LOGIC (THE FIX) ---
+            const iframe = document.getElementById('inspect-aadhaar-frame');
+            const img = document.getElementById('inspect-aadhaar-img');
+            const placeholder = document.getElementById('no-doc-placeholder');
+            const formatTag = document.getElementById('inspect-file-type');
+
+            iframe.classList.add('hidden');
+            img.classList.add('hidden');
+            placeholder.classList.add('hidden');
+            iframe.src = ""; // Clear previous
+
+            if (p.aadhaar) {
+                if (p.aadhaar.toLowerCase().endsWith('.pdf')) {
+                    formatTag.innerText = "Format: PDF_DOC";
+                    iframe.src = p.aadhaar;
+                    iframe.classList.remove('hidden');
+                } else {
+                    formatTag.innerText = "Format: STATIC_IMG";
+                    img.src = p.aadhaar;
+                    img.classList.remove('hidden');
+                }
+            } else {
+                formatTag.innerText = "Format: VOID";
+                placeholder.classList.remove('hidden');
+            }
+
+            // Interests
+            document.getElementById('inspect-interests').innerHTML = p.interests.map(i =>
+                `<span class="px-3 py-1 bg-white/10 rounded text-[9px] uppercase font-bold text-white/60 tracking-widest border border-white/5">${i}</span>`
+            ).join('');
+
+            // Actions
+            const actions = document.getElementById('inspect-actions');
+            actions.innerHTML = p.status === 'pending' ? `
+                <button onclick="updateStatus(${p.id}, 'approved'); closeInspector();" class="flex-1 py-5 bg-orange-600 text-black rounded-2xl text-[11px] font-black tracking-[4px] uppercase shadow-lg shadow-orange-600/20">Authorize Node</button>
+                <button onclick="updateStatus(${p.id}, 'rejected'); closeInspector();" class="px-8 py-5 border border-red-500 text-red-500 rounded-2xl text-[11px] font-black tracking-[4px] uppercase hover:bg-red-500/10 transition">Void</button>
+            ` : `<button onclick="closeInspector()" class="flex-1 py-5 bg-white/10 text-white rounded-2xl text-[11px] font-black tracking-[4px] uppercase border border-white/5">Terminal Sync Complete</button>`;
+
+            document.getElementById('tactical-inspector').classList.replace('hidden', 'flex');
+        }
+
+        function closeInspector() {
+            document.getElementById('tactical-inspector').classList.replace('flex', 'hidden');
+            document.getElementById('inspect-aadhaar-frame').src = ""; // Stop PDF background loading
+        }
+
+        window.onload = () => switchView('dashboard');
+    </script>
+</body>
+</html>

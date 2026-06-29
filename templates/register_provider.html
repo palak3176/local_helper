@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neary | Provider Onboarding</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --theme-orange: #ff8c00;
+            --theme-blue: #007bff;
+            --theme-cyan: #00f2ff;
+            --theme-deep: #050a0f;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --bubble-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--theme-deep);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            padding: 40px 20px;
+        }
+
+        .smoke-canvas {
+            position: fixed;
+            inset: 0;
+            background: var(--theme-deep);
+            z-index: -1;
+        }
+
+        .smoke-canvas::before, .smoke-canvas::after {
+            content: "";
+            position: absolute;
+            width: 60vw; height: 60vw;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            animation: meshFlow 25s infinite alternate ease-in-out;
+        }
+
+        .smoke-canvas::before { background: var(--theme-orange); top: -10%; left: -10%; }
+        .smoke-canvas::after { background: var(--theme-blue); bottom: -10%; right: -10%; animation-delay: -5s; }
+
+        @keyframes meshFlow {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(10%, 15%) scale(1.1); background: var(--theme-cyan); }
+            100% { transform: translate(-5%, 5%) scale(0.9); }
+        }
+
+        .auth-container {
+            width: 95%;
+            max-width: 800px;
+            padding: 40px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            box-shadow: var(--bubble-shadow);
+            position: relative;
+            z-index: 10;
+            height: auto;
+        }
+
+        .tabs-header { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; }
+
+        .step-pill {
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .step-pill:hover { border-color: var(--theme-orange); color: white; }
+        .step-pill.active { background: white; color: black; border-color: white; transform: scale(1.05); }
+
+        .input-row { display: flex; gap: 12px; margin-bottom: 15px; }
+        input, textarea {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 14px 20px;
+            color: white;
+            font-size: 0.9rem;
+            width: 100%;
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--theme-orange); background: rgba(255, 255, 255, 0.05); }
+
+        .prefix { background: var(--theme-orange); border-radius: 16px; padding: 14px; color: black; font-weight: 800; }
+        .otp-box { text-align: center; letter-spacing: 8px; font-size: 1.2rem; font-weight: 900; border: 2px dashed rgba(255, 140, 0, 0.3); margin: 10px 0; }
+
+        .interest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .chip input { display: none; }
+        .chip span {
+            display: block; padding: 15px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px;
+            text-align: center; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+        }
+        .chip input:checked + span { background: var(--theme-blue); border-color: var(--theme-cyan); color: white; }
+
+        .btn-main {
+            width: 100%; padding: 18px; border-radius: 20px; border: none;
+            background: linear-gradient(135deg, var(--theme-orange), #ff4500);
+            color: white; font-weight: 800; font-size: 1rem; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 2px; margin-top: 20px;
+        }
+        .btn-otp { background: white; color: black; border: none; font-weight: 800; border-radius: 14px; padding: 0 20px; cursor: pointer; }
+        .btn-large {
+            width: 100%; padding: 25px; background: rgba(0, 123, 255, 0.05);
+            border: 2px dashed var(--theme-blue); border-radius: 20px; color: var(--theme-blue);
+            font-weight: 800; text-transform: uppercase; cursor: pointer;
+        }
+
+        .status-msg { margin-top: 15px; padding: 15px; border-radius: 15px; display: none; text-align: center; font-size: 0.85rem; font-weight: 600; }
+        .msg-success { background: rgba(76, 175, 80, 0.1); color: #4caf50; border: 1px solid #4caf50; }
+
+        h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.8rem; text-align: center; margin: 0 0 25px 0; letter-spacing: -1px; }
+
+        .hidden { display: none; }
+        .flex-1 { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="smoke-canvas"></div>
+
+    <div class="auth-container">
+        <!-- TABS HEADER: Clickable navigation enabled -->
+        <div class="tabs-header">
+            <div class="step-pill active" id="tab-p1" onclick="showTab(1)">Profile</div>
+            <div class="step-pill" id="tab-p2" onclick="showTab(2)">Documents</div>
+            <div class="step-pill" id="tab-p3" onclick="showTab(3)">Finalizing</div>
+        </div>
+
+        <!-- STAGE 1: PROFILE -->
+        <div id="profileSection">
+            <div id="profilePage1">
+                <h2>Node Identity</h2>
+                <div class="input-row">
+                    <input type="text" id="firstName" placeholder="First Name">
+                    <input type="text" id="middleName" placeholder="Middle Name">
+                </div>
+                <div class="input-row">
+                    <input type="text" id="lastName" placeholder="Last Name">
+                </div>
+                <div class="input-row">
+                    <div class="prefix">+91</div>
+                    <input type="text" id="phone" placeholder="Phone No.">
+                    <button class="btn-otp" onclick="getOTP('whatsapp', this)">SEND</button>
+                </div>
+                <input type="text" id="phoneOTP" placeholder="Enter WhatsApp OTP" class="otp-box" maxlength="6" onkeyup="verifyOTPEntry('whatsapp', this)">
+
+                <div class="input-row">
+                    <input type="email" id="gmail" placeholder="Gmail Address">
+                    <button class="btn-otp" onclick="getOTP('gmail', this)">SEND</button>
+                </div>
+                <input type="text" id="gmailOTP" placeholder="Enter Gmail OTP" class="otp-box" maxlength="6" onkeyup="verifyOTPEntry('gmail', this)">
+
+                <button class="btn-main" onclick="nextProfilePage(2)">Continue to Interests</button>
+            </div>
+
+            <div id="profilePage2" class="hidden">
+                <h2>Sector Interests</h2>
+                <div class="interest-grid">
+                    <label class="chip"><input type="checkbox" name="interest" value="guide"><span>Guide</span></label>
+                    <label class="chip"><input type="checkbox" name="interest" value="errand"><span>Errand</span></label>
+                    <label class="chip"><input type="checkbox" name="interest" value="queue"><span>Waiting in Queue</span></label>
+                    <label class="chip"><input type="checkbox" name="interest" value="labour"><span>Manual Labour</span></label>
+                </div>
+                <div class="input-row">
+                    <textarea id="addrField" placeholder="Residential Address for Verification" rows="3"></textarea>
+                </div>
+                <div class="input-row">
+                    <button class="btn-main flex-1" style="background: rgba(255,255,255,0.1);" onclick="nextProfilePage(1)">Back</button>
+                    <button class="btn-main flex-1" onclick="showTab(2)">Next: Documentation</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STAGE 2: DOCS -->
+        <div id="docsSection" class="hidden">
+            <h2>Digital Credentials</h2>
+            <div class="upload-container">
+                <button class="btn-large" id="openCamBtn">Open Secure Camera</button>
+                <div id="camPreview" class="hidden" style="margin-top:15px;">
+                    <video id="video" width="100%" autoplay style="border-radius: 20px; border: 1px solid var(--theme-orange);"></video>
+                    <button class="btn-main" id="snapBtn">Capture Image</button>
+                    <canvas id="canvas" class="hidden"></canvas>
+                    <img id="photoResult" class="hidden" style="width:100%; border-radius: 20px; border: 2px solid #4caf50;">
+                    <button class="btn-main" id="confirmPhotoBtn" style="background:#4caf50; display:none;">Confirm Identity Photo</button>
+                </div>
+
+                <div style="margin-top:20px;">
+                    <label class="btn-large" for="aadhaarInput" style="display:block; text-align:center;">Upload Aadhaar PDF (Max 50KB)</label>
+                    <input type="file" id="aadhaarInput" class="hidden" accept=".pdf" onchange="validateAadhaarSize(this)">
+                    <p id="aadhaarName" style="text-align:center; color: var(--theme-orange); font-size: 0.8rem; margin-top:10px;"></p>
+                </div>
+
+                <button class="btn-main" style="margin-top:30px;" onclick="uploadFullData(this)">Initialize Specialist Link</button>
+            </div>
+        </div>
+
+        <!-- STAGE 3: SUCCESS -->
+        <div id="verifySection" class="hidden" style="text-align:center; padding: 40px 0;">
+            <h2 style="color: var(--theme-orange);">Registry Pending</h2>
+            <div class="status-msg msg-success" style="display:block;">Neural packets received. Documents are being validated by Mumbai Command Center.</div>
+            <p style="opacity: 0.5; margin-top:20px;">You will receive an authorization link once verified.</p>
+        </div>
+    </div>
+
+    <div id="status-box" class="status-msg"></div>
+
+    <script>
+        let capturedPhotoBlob = null;
+        let stream = null;
+        let userCoords = { lat: 19.0760, lng: 72.8777 }; // Default Mumbai grid
+
+        function showStatus(msg, type='info') {
+            const box = document.getElementById('status-box');
+            box.innerText = msg;
+            box.style.display = 'block';
+            box.className = `status-msg ${type === 'success' ? 'msg-success' : ''}`;
+            setTimeout(() => box.style.display = 'none', 5000);
+        }
+
+        // Geolocation
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            });
+        }
+
+        /**
+         * DEV_MODE: Relaxed validation for testing
+         */
+        function nextProfilePage(num) {
+            const p1 = document.getElementById('profilePage1');
+            const p2 = document.getElementById('profilePage2');
+            if (num === 2) {
+                // Mandatory checks removed for dev phase
+                p1.classList.add('hidden'); p2.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                p1.classList.remove('hidden'); p2.classList.add('hidden');
+            }
+        }
+
+        /**
+         * DEV_MODE: Switching tabs freely
+         */
+        function showTab(num) {
+            // Mandatory checks removed for dev phase
+            document.getElementById('profileSection').classList.toggle('hidden', num !== 1);
+            document.getElementById('docsSection').classList.toggle('hidden', num !== 2);
+            document.getElementById('verifySection').classList.toggle('hidden', num !== 3);
+
+            document.querySelectorAll('.step-pill').forEach((p, i) => p.classList.toggle('active', (i+1) === num));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function getOTP(method, btn) {
+            const target = (method === 'whatsapp') ? document.getElementById('phone').value : document.getElementById('gmail').value;
+            if (!target) { showStatus(`Dev: Proceeding with dummy target for ${method}.`); }
+
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/send_otp', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: method, target: target || "dev_test" })
+                });
+                const result = await res.json();
+                showStatus(result.message, result.status === 'success' ? 'success' : 'info');
+                let count = 5; // Reduced for dev speed
+                const timer = setInterval(() => {
+                    btn.innerText = `${count}s`;
+                    if (--count < 0) { clearInterval(timer); btn.innerText = "SEND"; btn.disabled = false; }
+                }, 1000);
+            } catch (err) { showStatus("Protocol error."); btn.disabled = false; }
+        }
+
+        async function verifyOTPEntry(type, input) {
+            if (input.value.length !== 6) return;
+            try {
+                const res = await fetch('/api/verify_otp', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ otp: input.value })
+                });
+                const result = await res.json();
+                if (result.status === "success") {
+                    input.style.borderColor = "#4caf50";
+                    input.disabled = true;
+                } else {
+                    input.value = ""; showStatus("Dev: Verification bypassed/failed.");
+                }
+            } catch (e) { showStatus("Downlink failure."); }
+        }
+
+        document.getElementById('openCamBtn').addEventListener('click', async () => {
+            try {
+                document.getElementById('camPreview').classList.remove('hidden');
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                document.getElementById('video').srcObject = stream;
+            } catch (e) { showStatus("Cam offline."); }
+        });
+
+        document.getElementById('snapBtn').addEventListener('click', () => {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            canvas.toBlob(blob => {
+                capturedPhotoBlob = blob;
+                const res = document.getElementById('photoResult');
+                res.src = URL.createObjectURL(blob);
+                res.classList.remove('hidden');
+                document.getElementById('confirmPhotoBtn').style.display = 'block';
+                video.classList.add('hidden');
+            }, 'image/jpeg');
+        });
+
+        document.getElementById('confirmPhotoBtn').addEventListener('click', () => {
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            document.getElementById('confirmPhotoBtn').innerText = "PHOTO CAPTURED";
+        });
+
+        function validateAadhaarSize(input) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById('aadhaarName').innerText = file.name;
+            }
+        }
+
+        /**
+         * DEV_MODE: Final submission relaxed
+         */
+        async function uploadFullData(btn) {
+            btn.disabled = true;
+            btn.innerText = "UPLOADING...";
+
+            const formData = new FormData();
+            formData.append('firstName', document.getElementById('firstName').value);
+            formData.append('middleName', document.getElementById('middleName').value);
+            formData.append('lastName', document.getElementById('lastName').value);
+            formData.append('phone', document.getElementById('phone').value);
+            formData.append('gmail', document.getElementById('gmail').value);
+            formData.append('address', document.getElementById('addrField').value);
+
+            formData.append('lat', userCoords.lat.toFixed(6));
+            formData.append('lng', userCoords.lng.toFixed(6));
+
+            const ints = [];
+            document.querySelectorAll('input[name="interest"]:checked').forEach(c => ints.push(c.value));
+            formData.append('interests', JSON.stringify(ints));
+            formData.append('type', ints.length > 0 ? ints[0] : 'guide');
+
+            if (capturedPhotoBlob) formData.append('photo', capturedPhotoBlob, 'profile.jpg');
+            const aadhaarInput = document.getElementById('aadhaarInput');
+            if (aadhaarInput.files[0]) formData.append('aadhaar', aadhaarInput.files[0]);
+
+            try {
+                const res = await fetch('/api/auth/register-provider', { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.status === "success") {
+                    showTab(3);
+                } else {
+                    showStatus("SQL Error: " + result.message);
+                    btn.disabled = false;
+                    btn.innerText = "INITIALIZE SPECIALIST LINK";
+                }
+            } catch (e) {
+                showStatus("Registry Timeout.");
+                btn.disabled = false;
+                btn.innerText = "INITIALIZE SPECIALIST LINK";
+            }
+        }
+    </script>
+</body>
+</html>
