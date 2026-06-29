@@ -16,15 +16,15 @@ CORS(app)
 # --- 2. CONFIGURATION ---
 
 # Gmail SMTP Setup (Sync with your credentials)
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_SERVER'] = ''
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'palakjain31072006@gmail.com'
-app.config['MAIL_PASSWORD'] = 'icfv bzdr rqcg jnlu'
+app.config['MAIL_USERNAME'] = ''
+app.config['MAIL_PASSWORD'] = ''
 mail = Mail(app)
 
 # Database Setup (local_helper_db)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:31072006Palak@localhost/local_helper_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = ''
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 15 * 1024 * 1024  # Buffer for PDFs and high-res photos
